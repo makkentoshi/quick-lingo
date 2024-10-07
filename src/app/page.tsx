@@ -1,101 +1,182 @@
-import Image from "next/image";
+"use client";
+import "regenerator-runtime/runtime";
+import React, { useState, ChangeEvent } from "react";
+import {
+  IconCopy,
+  IconStar,
+  IconThumbDown,
+  IconThumbUp,
+  IconVolume,
+} from "@tabler/icons-react";
+import SpeechRecognitionComponent from "@/components/Inputs/SpeechRecognition/SpeechRecognition";
+import TextArea from "@/components/Inputs/TextArea";
+import FileUpload from "@/components/Inputs/FileUpload";
+import LinkPaste from "@/components/Inputs/LinkPaste";
+import LanguageSelector from "@/components/Inputs/LanguageSelector";
+import useTranslate from "@/hooks/useTranslate";
+import { rtfToText } from "@/utils/rtfToText";
 
-export default function Home() {
+import SvgDecorations from "@/components/SvgDecorations";
+import CategoryLinks from "@/components/Inputs/categoryLinks";
+
+const Home: React.FC = () => {
+  const [sourceText, setSourceText] = useState<string>("");
+  const [copied, setCopied] = useState<boolean>(false);
+  const [favorite, setFavorite] = useState<boolean>(false);
+  const [languages] = useState<string[]>([
+    "English",
+    "Spanish",
+    "French",
+    "German",
+    "Chinese",
+  ]);
+  const [selectedLanguage, setSelectedLanguage] = useState<string>("Spanish");
+
+  const targetText = useTranslate(sourceText, selectedLanguage);
+
+  const handleFileUpload = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const rtfContent = reader.result as string;
+        const text = rtfToText(rtfContent);
+        setSourceText(text);
+      };
+      reader.readAsText(file);
+    }
+  };
+
+  const handleLinkPaste = async (e: ChangeEvent<HTMLInputElement>) => {
+    const link = e.target.value;
+    try {
+      const response = await fetch(link);
+      const data = await response.text();
+      setSourceText(data);
+    } catch (error) {
+      console.error("Error fetching link content:", error);
+    }
+  };
+
+  const handleCopyToClipboard = () => {
+    navigator.clipboard.writeText(targetText);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleLike = () => {
+    // Implement like logic
+  };
+
+  const handleDislike = () => {
+    // Implement dislike logic
+  };
+
+  const handleFavorite = () => {
+    setFavorite(!favorite);
+    if (!favorite) {
+      localStorage.setItem("favoriteTranslation", targetText);
+    } else {
+      localStorage.removeItem("favoriteTranslation");
+    }
+  };
+
+  const handleAudioPlayback = (text: string) => {
+    const utterance = new SpeechSynthesisUtterance(text);
+    window.speechSynthesis.speak(utterance);
+  };
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+    <div className="w-full bg-black bg-dot-white/[0.2]  relative flex items-center justify-center">
+      <div className="absolute pointer-events-none inset-0 flex items-center justify-center bg-black [mask-image:radial-gradient(ellipse_at_center,transparent_20%,black)]"></div>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+      <div className="relative overflow-hidden min-h-screen w-full">
+        <div className="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-24">
+          <div className="text-center">
+            <h1 className="text-5xl sm:text-7xl font-bold text-neutral-200 mb-6">
+              Quick<span className="text-[#f87315]">Lingo</span>
+            </h1>
+
+            <p className="mt-3 text-neutral-400 text-lg">
+              QuickLingo: Bridging Voices, Connecting Worlds.
+            </p>
+
+            <div className="mt-7 sm:mt-12 mx-auto max-w-4xl relative">
+              <div className="grid gap-4 md:grid-cols-2 grid-cols-1">
+                <div className="relative z-10 flex flex-col p-3 border rounded-lg shadow-lg bg-neutral-900 border-neutral-700 shadow-gray-900/20">
+                  <TextArea
+                    id="source-language"
+                    value={sourceText}
+                    onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
+                      setSourceText(e.target.value)
+                    }
+                    placeholder="Source Language"
+                    className="w-full h-40 p-2 bg-transparent text-white placeholder-gray-500 resize-none focus:outline-none"
+                  />
+                  <div className="flex flex-row justify-between w-full">
+                    <span className="cursor-pointer flex space-x-2 flex-row">
+                      <SpeechRecognitionComponent
+                        setSourceText={setSourceText}
+                      />
+                      <IconVolume
+                        size={22}
+                        onClick={() => handleAudioPlayback(sourceText)}
+                      />
+                      <FileUpload handleFileUpload={handleFileUpload} />
+                      <LinkPaste handleLinkPaste={handleLinkPaste} />
+                    </span>
+                    <span className="text-sm pr-4">
+                      {sourceText.length} / 2000
+                    </span>
+                  </div>
+                </div>
+
+                <div className="relative z-10 flex flex-col p-3 border rounded-lg shadow-lg bg-neutral-900 border-neutral-700 shadow-gray-900/20">
+                  <TextArea
+                    id="target-language"
+                    value={targetText}
+                    onChange={() => {}}
+                    placeholder="Target Language"
+                    className="w-full h-40 p-2 bg-transparent text-white placeholder-gray-500 resize-none focus:outline-none"
+                  />
+                  <div className="flex flex-row justify-between w-full">
+                    <span className="cursor-pointer flex items-center space-x-2 flex-row">
+                      <LanguageSelector
+                        selectedLanguage={selectedLanguage}
+                        setSelectedLanguage={setSelectedLanguage}
+                        languages={languages}
+                      />
+                      <IconVolume
+                        size={22}
+                        onClick={() => handleAudioPlayback(targetText)}
+                      />
+                    </span>
+                    <div className="flex flex-row items-center space-x-2 pr-4 cursor-pointer">
+                      <IconCopy size={22} onClick={handleCopyToClipboard} />
+                      {copied && (
+                        <span className="text-xs text-green-500">Copied!</span>
+                      )}
+                      <IconThumbUp size={22} onClick={handleLike} />
+                      <IconThumbDown size={22} onClick={handleDislike} />
+                      <IconStar
+                        size={22}
+                        onClick={handleFavorite}
+                        className={favorite ? "text-yellow-500" : ""}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <SvgDecorations />
+            </div>
+
+            <CategoryLinks className="text-sm space-x-4 mt-8" />
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      </div>
     </div>
   );
-}
+};
+
+export default Home;
