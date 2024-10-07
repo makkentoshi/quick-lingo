@@ -40,6 +40,8 @@ const useTranslate = (sourceText, selectedLanguage) => {
     };
 
     if (sourceText.trim()) {
+      console.log("Source text:", sourceText);
+      console.log("Selected language:", selectedLanguage);
       const timeoutId = setTimeout(() => {
         handleTranslate(sourceText);
       }, 500);
